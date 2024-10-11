@@ -47,7 +47,7 @@ def get_holidays(country: str):
         logger.error(f"Country {country} not supported")
         return pd.DataFrame(columns=['ds', 'holiday'])
 
-# Function to apply tax deductions to incomes
+# Function to apply tax deductions to incomes 
 def apply_tax_deductions(incomes: list, tax_rate: float):
     return [income * (1 - tax_rate) for income in incomes]
 
