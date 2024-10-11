@@ -6,6 +6,7 @@ __pycache__/
 
 # Ignore other common files and directories
 *.pyc
+*.txt
 *.pyo
 *.pyd
 *.env
