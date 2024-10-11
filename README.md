@@ -94,14 +94,14 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Dependancies
--FastAPI
--Uvicorn
--Pydantic
--Prophet
--pandas
--holidays
--asyncio
--logging
+- FastAPI
+- Uvicorn
+- Pydantic
+- Prophet
+- pandas
+- holidays
+- asyncio
+- logging
 
 
 And awaaaay you go! 🚀
