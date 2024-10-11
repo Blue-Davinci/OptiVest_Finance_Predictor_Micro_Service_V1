@@ -1,0 +1,19 @@
+# Ignore virtual environment directory
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+
+# Ignore other common files and directories
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.env.*
+.envrc
+*.egg-info/
+dist/
+build/
+.DS_Store
+.idea/
+.vscode/
