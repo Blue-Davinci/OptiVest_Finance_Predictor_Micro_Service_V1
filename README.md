@@ -24,7 +24,7 @@ Predict financial metrics based on the provided data.
   },
   "start_date": "2023-01-01",
   "frequency": "monthly",
-  "country": "Kenya",
+  "country": "USA",
   "prediction_period": 3,
   "tax_deductions": false,
   "tax_rate": 0.1,
