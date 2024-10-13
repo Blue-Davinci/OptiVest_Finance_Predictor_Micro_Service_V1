@@ -78,9 +78,12 @@ def forecast_data(dates, values, country, prediction_period, enable_seasonality,
     model.fit(df)
     future = model.make_future_dataframe(periods=prediction_period, freq='ME')
     forecast = model.predict(future)
+
+    # Format the 'ds' column to only return the date in YYYY-MM-DD format
+    forecast['ds'] = forecast['ds'].dt.strftime('%Y-%m-%d')
+
     return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(prediction_period).to_dict(orient='records')
 
-# Forecast Savings with optional seasonality and holidays
 def forecast_savings(savings, start_date, prediction_period, country, enable_seasonality, enable_holidays):
     current_savings = savings.get('current_savings', 0)
     monthly_contribution = savings.get('monthly_contribution', 0)
@@ -88,7 +91,6 @@ def forecast_savings(savings, start_date, prediction_period, country, enable_sea
 
     # Generate dates for the forecast periods
     dates = pd.date_range(start=start_date, periods=prediction_period, freq='ME')
-    # Calculate initial savings values without prediction
     savings_values = [current_savings + i * monthly_contribution for i in range(prediction_period)]
 
     df = create_dataframe(dates, savings_values)
@@ -102,20 +104,17 @@ def forecast_savings(savings, start_date, prediction_period, country, enable_sea
         if not holidays_df.empty:
             model = model.add_country_holidays(country_name=country)
 
-    # Fit the model
     model.fit(df)
-
-    # Make future predictions
     future = model.make_future_dataframe(periods=prediction_period, freq='ME')
     forecast = model.predict(future)
 
     # Ensure savings cannot go below zero by capping the lower bound at 0
     forecast['yhat'] = forecast['yhat'].apply(lambda x: max(x, 0))
 
-    # Check if the forecasted savings meet or exceed the goal
-    forecast['goal_met'] = forecast['yhat'].apply(lambda x: 'Yes' if x >= goal else 'No')
+    # Format the 'ds' column to return dates in YYYY-MM-DD format
+    forecast['ds'] = forecast['ds'].dt.strftime('%Y-%m-%d')
 
-    # Calculate surplus or deficit by comparing forecasted savings to the goal
+    forecast['goal_met'] = forecast['yhat'].apply(lambda x: 'Yes' if x >= goal else 'No')
     forecast['surplus_or_deficit'] = forecast['yhat'].apply(lambda x: x - goal)
 
     return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper', 'goal_met', 'surplus_or_deficit']].tail(prediction_period).to_dict(orient='records')

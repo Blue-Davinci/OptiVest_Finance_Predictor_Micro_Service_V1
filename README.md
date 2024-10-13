@@ -15,22 +15,37 @@ Predict financial metrics based on the provided data.
 
 ```json
 {
-  "expenses": [100, 150, 200],
-  "incomes": [200, 250, 300],
-  "savings": {
-    "current_savings": 1000,
-    "monthly_contribution": 200,
-    "goal": 5000
-  },
-  "start_date": "2023-01-01",
-  "frequency": "monthly",
-  "country": "USA",
-  "prediction_period": 3,
-  "tax_deductions": false,
-  "tax_rate": 0.1,
-  "enable_seasonality": false,
-  "enable_holidays": false
+    "expenses": [
+        1000,
+        1200,
+        1100,
+        1050,
+        1300
+    ],
+    "expenses_start_date": "2024-03-01",
+    "incomes": [
+        3000,
+        3200,
+        3100,
+        3000,
+        3300
+    ],
+    "incomes_start_date": "2024-04-01",
+    "savings": {
+        "current_savings": 10000,
+        "monthly_contribution": 3000,
+        "goal": 20000
+    },
+    "savings_start_date": "2024-05-01",
+    "frequency": "monthly",
+    "country": "Kenya",
+    "prediction_period": 3,
+    "enable_tax_deductions": false,
+    "tax_rate": 0.1,
+    "enable_seasonality": false,
+    "enable_holidays": false
 }
+
 ```
 ### Values
 - expenses: List of historical expense values.
