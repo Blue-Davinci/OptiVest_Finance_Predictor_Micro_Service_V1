@@ -87,8 +87,36 @@ Predict financial metrics based on the provided data.
 }
 ```
 
+### Prerequisites
+
+- Python 3.10
+- `pip` (Python package installer)
+
 ### Installation
+1. **Clone the repository:**
+
+   ```sh
+   git clone https://github.com/Blue-Davinci/OptiVest_Finance_Predictor_Micro_Service_V1
+   cd OptiVest_Finance_Predictor_V1
+  ```
 To run the micro-service API, use the following command:
+
+2. **Create a virtual environment with Python 3.10:**
+```sh
+C:\Users\KLAUS\AppData\Local\Programs\Python\Python310\python.exe -m venv .venv
+```
+
+3. **Activate the virtual environment:**
+```bash
+& ".\.venv\Scripts\Activate.ps1"
+```
+
+4. **Install the dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+5. **Run the FastAPI application:**
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
@@ -103,5 +131,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 - asyncio
 - logging
 
+**License**
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 And awaaaay you go! 🚀
