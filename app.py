@@ -133,34 +133,65 @@ def get_dates(start_date, frequency, length):
 # Main prediction function using asyncio for parallelism
 async def process_predictions(data: PredictionRequest):
     try:
-        dates = get_dates(data.start_date, data.frequency, len(data.expenses or []))
+        # Generate dates only for expenses or incomes if they are present
+        data_length = max(len(data.expenses or []), len(data.incomes or []), 1)  # Ensure at least 1 period for dates
+        dates = get_dates(data.start_date, data.frequency, data_length)
 
-        # Run tasks concurrently using asyncio
+        # Create a list to hold the asyncio tasks for predictions
         tasks = []
-        if data.expenses:
-            tasks.append(asyncio.to_thread(forecast_data, dates, data.expenses, data.country, data.prediction_period, data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate))
-        if data.incomes:
-            tasks.append(asyncio.to_thread(forecast_data, dates, data.incomes, data.country, data.prediction_period, data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate))
-        if data.savings:
-            tasks.append(asyncio.to_thread(forecast_savings, data.savings, data.start_date, data.prediction_period, data.country, data.enable_seasonality, data.enable_holidays))
 
-        # Wait for all tasks to complete
+        # Add expense prediction task if expenses data is provided
+        if data.expenses:
+            tasks.append(asyncio.to_thread(
+                forecast_data, dates, data.expenses, data.country, data.prediction_period, 
+                data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate
+            ))
+
+        # Add income prediction task if incomes data is provided
+        if data.incomes:
+            tasks.append(asyncio.to_thread(
+                forecast_data, dates, data.incomes, data.country, data.prediction_period, 
+                data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate
+            ))
+
+        # Add savings prediction task if savings data is provided
+        if data.savings:
+            tasks.append(asyncio.to_thread(
+                forecast_savings, data.savings, data.start_date, data.prediction_period, 
+                data.country, data.enable_seasonality, data.enable_holidays
+            ))
+
+        # If no data is provided, raise an error
+        if not tasks:
+            raise HTTPException(status_code=400, detail="No expenses, incomes, or savings data provided for prediction.")
+
+        # Run all the tasks concurrently and gather results
         results = await asyncio.gather(*tasks)
 
-        # Extract the results
-        expense_predictions = results[0] if data.expenses else None
-        income_predictions = results[1] if data.incomes else None
-        savings_predictions = results[2] if data.savings else None
-
-        return {
-            "expense_predictions": expense_predictions,
-            "income_predictions": income_predictions,
-            "savings_predictions": savings_predictions
+        # Initialize the result dictionary
+        result_dict = {
+            "expense_predictions": None,
+            "income_predictions": None,
+            "savings_predictions": None
         }
+
+        # Assign results to the correct keys in result_dict based on input presence
+        result_index = 0
+        if data.expenses:
+            result_dict["expense_predictions"] = results[result_index]
+            result_index += 1
+        if data.incomes:
+            result_dict["income_predictions"] = results[result_index]
+            result_index += 1
+        if data.savings:
+            result_dict["savings_predictions"] = results[result_index]
+
+        return result_dict
 
     except Exception as e:
         logger.error(f"Prediction processing failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Async route for FastAPI to handle incoming predictions
 @v1_router.post("/predict")
