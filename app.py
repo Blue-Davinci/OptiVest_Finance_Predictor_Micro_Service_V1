@@ -20,9 +20,11 @@ v1_router = APIRouter(prefix="/v1")
 # Define the data model for the incoming request using Pydantic
 class PredictionRequest(BaseModel):
     expenses: list = None
+    expenses_start_date: str = None  # New field for expenses start date
     incomes: list = None
+    incomes_start_date: str = None  # New field for incomes start date
     savings: dict = None
-    start_date: str
+    savings_start_date: str = None  # New field for savings start date
     frequency: str = "monthly"  # Default to monthly if not provided
     country: str = "Kenya"  # Default to Kenya if not provided
     prediction_period: int = 3  # Default to 3 periods if not provided
@@ -30,6 +32,7 @@ class PredictionRequest(BaseModel):
     tax_rate: float = 0.1  # Default tax rate of 10%
     enable_seasonality: bool = False  # Option to enable seasonality
     enable_holidays: bool = False  # Option to enable holidays
+
 
 # Function to create a dataframe for Prophet
 def create_dataframe(dates, values):
@@ -130,18 +133,15 @@ def get_dates(start_date, frequency, length):
         logger.error("Unsupported frequency")
         raise ValueError("Unsupported frequency")
 
+
 # Main prediction function using asyncio for parallelism
 async def process_predictions(data: PredictionRequest):
     try:
-        # Generate dates only for expenses or incomes if they are present
-        data_length = max(len(data.expenses or []), len(data.incomes or []), 1)  # Ensure at least 1 period for dates
-        dates = get_dates(data.start_date, data.frequency, data_length)
-
-        # Create a list to hold the asyncio tasks for predictions
         tasks = []
 
         # Add expense prediction task if expenses data is provided
         if data.expenses:
+            dates = get_dates(data.expenses_start_date or data.start_date, data.frequency, len(data.expenses))
             tasks.append(asyncio.to_thread(
                 forecast_data, dates, data.expenses, data.country, data.prediction_period, 
                 data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate
@@ -149,6 +149,7 @@ async def process_predictions(data: PredictionRequest):
 
         # Add income prediction task if incomes data is provided
         if data.incomes:
+            dates = get_dates(data.incomes_start_date or data.start_date, data.frequency, len(data.incomes))
             tasks.append(asyncio.to_thread(
                 forecast_data, dates, data.incomes, data.country, data.prediction_period, 
                 data.enable_seasonality, data.enable_holidays, data.tax_deductions, data.tax_rate
@@ -156,14 +157,11 @@ async def process_predictions(data: PredictionRequest):
 
         # Add savings prediction task if savings data is provided
         if data.savings:
+            dates = get_dates(data.savings_start_date or data.start_date, data.frequency, data.prediction_period)
             tasks.append(asyncio.to_thread(
-                forecast_savings, data.savings, data.start_date, data.prediction_period, 
+                forecast_savings, data.savings, data.savings_start_date or data.start_date, data.prediction_period, 
                 data.country, data.enable_seasonality, data.enable_holidays
             ))
-
-        # If no data is provided, raise an error
-        if not tasks:
-            raise HTTPException(status_code=400, detail="No expenses, incomes, or savings data provided for prediction.")
 
         # Run all the tasks concurrently and gather results
         results = await asyncio.gather(*tasks)
@@ -175,7 +173,6 @@ async def process_predictions(data: PredictionRequest):
             "savings_predictions": None
         }
 
-        # Assign results to the correct keys in result_dict based on input presence
         result_index = 0
         if data.expenses:
             result_dict["expense_predictions"] = results[result_index]
@@ -191,6 +188,7 @@ async def process_predictions(data: PredictionRequest):
     except Exception as e:
         logger.error(f"Prediction processing failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # Async route for FastAPI to handle incoming predictions
