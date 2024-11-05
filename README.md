@@ -38,7 +38,7 @@ Predict financial metrics based on the provided data.
     },
     "savings_start_date": "2024-05-01",
     "frequency": "monthly",
-    "country": "Kenya",
+    "country": "USA",
     "prediction_period": 3,
     "enable_tax_deductions": false,
     "tax_rate": 0.1,
